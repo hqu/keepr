@@ -72,12 +72,9 @@ foreach($twitter_handles_arr as $result) {
 }
 
 require_once ('codebird.php');
-
+require_once ('keys.php');
 //Twitter OAuth Settings, enter your settings here:
-$CONSUMER_KEY = 'DxX3ycbPONbR5U81Y7Zefw';
-$CONSUMER_SECRET = 'Bizoo1ieeJyja1EAXVOgcz7xjzTNQjyxqBs1VQGnKs';
-$ACCESS_TOKEN = '16657356-TWAUFhASD0B6hGeAZD4vH6mwz4SrynYQ1fESC1Nac';
-$ACCESS_TOKEN_SECRET = 'Dsfy67ONYTNgaCqk1MwKFSHAnkXxu0Mjoro0XQEU';
+
 
 //Get authenticated
 Codebird::setConsumerKey($CONSUMER_KEY, $CONSUMER_SECRET);
