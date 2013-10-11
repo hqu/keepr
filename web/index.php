@@ -1,3 +1,12 @@
+<?php
+session_start();
+//echo isset($_GET['unset_var']);
+//if (isset($_GET['unset_var'])) {
+	//unset($_SESSION['search_term']);
+	//session_destroy();
+//}
+
+?>
 <!DOCTYPE html>
 <!--[if IE 8]> 				 <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
@@ -24,7 +33,10 @@ $raw_query_string_prev = str_replace($breaking_news_query , "", $raw_query_strin
 
 $query_string_prev = $raw_query_string_prev;
 
-
+$nothomepage = false;
+if ($raw_query_string !== $breaking_news_query) {
+    $nothomepage = true;
+}
 
 if ($query_string_prev){
 $query_string_prev_encoded = urlencode($raw_query_string_prev);;
@@ -34,6 +46,18 @@ $query_string_full_encoded = $query_string_prev_encoded . "%20" . $query_string_
 else {
 	$query_string_full = $query_string;
 	$query_string_full_encoded = $query_string_encoded;
+}
+
+//Create session variable to track search terms
+if (empty($_SESSION['search_term'])){
+$_SESSION['search_term'] = array();
+}
+
+//Add to session variable to search terms
+if ($nothomepage) {
+	if (!in_array($query_string, $_SESSION['search_term'])) {
+		array_push($_SESSION['search_term'],$query_string);
+	}
 }
 
 //Set string variable to keep track of twitter user sources 
@@ -50,10 +74,10 @@ foreach($twitter_handles_arr as $result) {
 require_once ('codebird.php');
 
 //Twitter OAuth Settings, enter your settings here:
-$CONSUMER_KEY = 'YOUR_CONSUMER_KEY_FROM_TWITTER';
-$CONSUMER_SECRET = 'YOUR_CONSUMER_SECRET_FROM_TWITTER';
-$ACCESS_TOKEN = 'YOUR_TOKEN_FROM_TWITTER';
-$ACCESS_TOKEN_SECRET = 'YOUR_TOKEN_SECRET_FROM_TWITTER';
+$CONSUMER_KEY = 'DxX3ycbPONbR5U81Y7Zefw';
+$CONSUMER_SECRET = 'Bizoo1ieeJyja1EAXVOgcz7xjzTNQjyxqBs1VQGnKs';
+$ACCESS_TOKEN = '16657356-TWAUFhASD0B6hGeAZD4vH6mwz4SrynYQ1fESC1Nac';
+$ACCESS_TOKEN_SECRET = 'Dsfy67ONYTNgaCqk1MwKFSHAnkXxu0Mjoro0XQEU';
 
 //Get authenticated
 Codebird::setConsumerKey($CONSUMER_KEY, $CONSUMER_SECRET);
@@ -65,7 +89,7 @@ $params = array(
 	'q' => $query_string_full . ' exclude:retweets',
 	'result_type' => 'popular',
 	'lang' => 'en',
-	'count' => '10'
+	'count' => '6'
 );
 $data = $cb->search_tweets($params, true);
 $data_json = json_encode($data);
@@ -83,12 +107,19 @@ $data_json_2 = json_encode($data_2);
 $json_output_2 = json_decode($data_json_2, true);
 
 
+$params_3 = array(
+	'q' => $query_string_full . ' AND (pic.twitter.com OR Twitpic OR Flickr OR Yfrog OR instagram)',
+	'result_type' => 'recent',
+	'lang' => 'en',	
+	'count' => '10'
+);
+$data_3 = $cb->search_tweets($params_3, true);
+$data_json_3 = json_encode($data_3);
+$json_output_3 = json_decode($data_json_3, true);
+
 
 //Output result in JSON, getting it ready for jQuery to process
 //echo json_encode($data);
-
-
-
 
 $full_string = " ";
 $full_string_user = " ";
@@ -96,8 +127,26 @@ $full_string_user = " ";
 
 $full_string = $full_string . " " . $tw_text;
 $related_links = array();
+$related_images = array();
 $names_arr = array();
 $user_mention_arr = array();
+
+foreach($json_output_3['statuses'] as $key9 => $result9) {
+    $links_images = $result9[entities][media];
+
+    if (!empty($links_images)){   
+	foreach($links_images as $key6 => $result6) {
+		$url_str = $result6[media_url];
+		//$url_tweet = $result6[expanded_url];		
+		//if (in_array($url_str, $related_images)) {
+			$related_images[] = $url_str;
+			//$related_images[tweet_link] = $url_tweet;
+		//}
+	}
+	}
+}
+
+
 
 foreach($json_output_2['statuses'] as $key => $result) {
     $tweet_id = $result[id];
@@ -124,18 +173,16 @@ foreach($json_output_2['statuses'] as $key => $result) {
         }
     }   
     
-   
     if (!empty($links_node)){   
         foreach($links_node  as $key4 => $result4) {
             $url_str = $result4[expanded_url];
             //$full_string_links = $full_string_links . " " . $url_str;
             if (strpos($url_str, $raw_query_string) === false) {
-		$related_links[] = $url_str;
+            //echo $url_str;
+				$related_links[] = $url_str;
             }
         }
     }
-   
-
 }
 
 foreach($json_output['statuses'] as $key2 => $result2) {
@@ -171,17 +218,20 @@ if (!empty($related_users_array)){
     $user_mention_arr = array_count_values($related_users_array);
     arsort($user_mention_arr);
 }
+
 if (!empty($related_links)){
     $related_links_arr_counted = array_count_values($related_links);
     arsort($related_links_arr_counted);
 }
 
-
-
+if (!empty($related_images)){
+    $related_images_arr_counted = array_count_values($related_images);
+    arsort($related_images_arr_counted);
+}
 
 
 ?>
-  <title>Keepr data mining social media chatter -  <?php echo $query_string_full; ?></title>
+  <title>Keepr - news search engine - <?php echo $query_string_full; ?></title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="stylesheet" href="css/normalize.css" />
   <link rel="stylesheet" href="css/foundation.css" />
@@ -199,39 +249,57 @@ a:hover {
 	<div class="row">
 		<div class="large-12 columns">
 			<div class="row" style="background-color:#3B3131;padding-bottom:3px;">
-				<div class="large-2 columns text-center" style="padding:2px;"><font style="font-family: 'Geo', sans-serif;font-size:56px;padding-left: 5px;"><a href='/demo/index.php'>Keepr</a></font></div>
+				<div class="large-2 columns text-center" style="padding:2px;"><font style="font-family: 'Geo', sans-serif;font-size:56px;padding-left: 5px;"><a href='/index.php?unset_var=1'>Keepr</a></font></div>
 				<div class="large-6 columns">
 				</div>
 			</div>	
 			
-			<form action="index.php" method="get" onSubmit="_gaq.push(['_trackEvent', 'SearchForm', 'click_submit', '<?php echo $query_string_full ?>']);">			
-			  <div class="row" style="padding-top:15px;margin-top:10px;">
-
+			<form action="index.php" id="searchForm" method="get" onSubmit="_gaq.push(['_trackEvent', 'SearchForm', 'click_submit', '<?php echo $query_string_full ?>']);">			
+			  <div class="row" style="padding-top:15px;margin-top:26px;margin-bottom:20px;">
 				<div class="large-12 columns text-left">
 				  <div class="row collapse">
-					<div class="large-6 columns">
+					<div class="large-5 columns">
 										<?php
-										if ($raw_query_string === $breaking_news_query) {
-											echo '<input type="text" name="q" placeholder="e.g. obama" value="" style="color:#666;height:38px;font-size:16px;" />';							    
+										if (!$nothomepage) {
+											echo '<input type="text" name="q" id="q" placeholder="e.g. obama" value="" style="color:#666;height:50px;font-size:22px;" />';							    
 										}
 										else {
-											echo '<input type="text" name="q" value="'. $query_string_full .'" style="color:#333;height:38px;font-size:18px;"/>';
+											echo '<input type="text" name="q" id="q" value="'. $query_string_full .'" style="color:#333;height:50px;font-size:22px;"/>';
 										}
 										?>
 					</div>
-					<div class="small-6 columns text-left">
-					  <input type="submit" value="Search" class="button prefix" style="width:80px;height:38px;padding-top:6px;font-size:14px;">
+					<div class="large-7 columns text-left">
+						<div style="float:left;">
+						<?php
+						//if ($raw_query_string_prev) {
+							//echo '<input type="hidden" name="unset_var" value="1">'; 	
+						//}
+						?> 
+						  <input type="submit" value="Search" class="button prefix" style="width:90px;height:50px;padding-top:8px;font-size:20px;">
+						 
+						</div>
+						
+						<div style="float:left;text-align:right;width:68%;padding-top:0px;padding-left:5px;">
+						<?php
+						if (!empty($_SESSION['search_term'])){			  
+							foreach($_SESSION['search_term'] as $key=>$value) {
+								$value_encoded = urlencode($value);
+								echo "<a class='xsmall awesome' style='border-color: #d0d0d0;background-color:#E9E9E9;color:#333333' href='index.php?q=$value_encoded&unset_var=1'>$value</a> &nbsp;";					
+							}				
+						}
+						?>					
+						</div>						  
 					</div>
 				  </div>
 				</div>
 			  </div>							
-			</form>			    	
+			</form>		    	
 		</div>	
 	</div>
 
 	<div class="row">
 		<div class="large-12 columns">
-			<div class="row"  style="background-color:#E2F2F2;padding-bottom: 6px;padding-top: 10px; margin-top:-18px;">
+			<div class="row"  style="background-color:#E2F2F2;padding-bottom: 6px;padding-top: 10px;">
 				<div class="small-12 columns">
 					<?php
 					if (!empty($names_array_counted)){
@@ -240,7 +308,7 @@ a:hover {
 						if (stristr($raw_query_string, $name_string) === false) {	
 						    $full_url_string = "index.php?q=" . urlencode($name_string) . "&q_prev=" . $query_string_full_encoded;
 						    if ($name_freq > 1) {
-								echo "<a href='$full_url_string' class='large awesome' style='margin:3px;background-color: '>{$name_string}</a>";
+								echo "<a href='$full_url_string' class='large awesome' onmouseout='reset_q();' onmouseover='preview_q(this.textContent);' style='margin:3px;background-color: '>{$name_string}</a>";
 								$subtopics_entities[]=$name_string . " " . $query_string_full;
 								//echo " E3 $name_freq";
 						    }
@@ -254,7 +322,7 @@ a:hover {
 						$full_url_string = "index.php?q=" . urlencode($text_string) . "&q_prev=" . $query_string_full_encoded;
 						if (strpos(strtolower($query_string_full),$text_string) === false) {
 						    if ($key_freq > 20) {
-							echo "<a href='$full_url_string' class='large awesome' style='margin:3px;'>{$text_string}</a>";
+							echo "<a href='$full_url_string' class='large awesome' onmouseout='reset_q();' onmouseover='preview_q(this.textContent);' style='margin:3px;'>{$text_string}</a>";
 							$subtopics_entities[]=$text_string . " " . $query_string_full;
 							//echo " K40 $key_freq";
 						    }					    
@@ -268,7 +336,7 @@ a:hover {
 						if (stristr($raw_query_string, $name_string) ===FALSE AND stristr($query_string_full, $name_string) ===FALSE) {	
 						    $full_url_string = "index.php?q=" . urlencode($name_string) . "&q_prev=" . $query_string_full_encoded;
 						    if ($name_freq < 2) {
-							echo "<a href='$full_url_string' class='medium awesome' style='margin:3px;background-color: '>{$name_string}</a>";
+							echo "<a href='$full_url_string' class='medium awesome' onmouseout='reset_q();' onmouseover='preview_q(this.textContent);' style='margin:3px;background-color: '>{$name_string}</a>";
 							//echo " E2 $name_freq";
 						    }					        
 						    }	
@@ -281,7 +349,7 @@ a:hover {
 						$full_url_string = "index.php?q=" . urlencode($text_string) . "&q_prev=" . $query_string_full_encoded;
 						if (strpos(strtolower($query_string_full),$text_string) === false) {
 						    if ($key_freq < 26) {
-							echo "<a href='$full_url_string' class='small awesome' style='margin:3px;'>{$text_string}</a>";
+							echo "<a href='$full_url_string' class='small awesome' onmouseout='reset_q();' onmouseover='preview_q(this.textContent);' style='margin:3px;'>{$text_string}</a>";
 							//echo " K00 $key_freq";
 						    }						    
 						}    
@@ -296,13 +364,13 @@ a:hover {
 
 	<div class="row" style="background-color:#E2F2F2;">
 			<div class="large-4 columns">
-				<div class="row" style="margin-top:8px; margin-left:-12px;">
+				<div class="row" style="padding-top:8px; margin-left:-12px;">
 				
 				<?php
-				
+	    if ($nothomepage) {
+
 				if (!empty($related_links_arr_counted)){
-					
-					foreach (array_slice($related_links_arr_counted, 0, 3) as $url_string => $url_freq) {
+					foreach (array_slice($related_links_arr_counted, 0, 2) as $url_string => $url_freq) {
 						if ($url_freq > 1) {	
 						    $full_url_string = "index.php?q=" . urlencode($url_string);
 						    $display_url_string = substr($url_string,0,32);
@@ -330,15 +398,24 @@ a:hover {
 						}
 					}
 				}
+
+				if (!empty($related_images_arr_counted)){
+					foreach (array_slice($related_images_arr_counted, 0, 8) as $url_string => $url_freq) {
+						echo '<img class="th radius" src="' . $url_string . '" width="96%" align="center"><br><br>';
+					}
+				}
+
 				
+			}
 				?>			
-				</div>
+				</div>					
 			</div>
 		
 		<div class="large-4 columns">
 			<div class="row">
 		
 				<?php
+			if ($nothomepage) {				
 				if (!empty($json_output['statuses'])) {
 					foreach(array_slice($json_output['statuses'], 0, 5) as $key => $result)  {
 						$tweet_id = $result[id];
@@ -348,19 +425,21 @@ a:hover {
 						echo "</div>";	    
 					}
 				}
+			}
 				?>
 				
 				<?php
-					foreach(array_slice($json_output_2['statuses'], 0, 20) as $key => $result)  {
+					foreach(array_slice($json_output_2['statuses'], 0, 12) as $key => $result)  {
 						$tweet_id = $result[id];
 						$embed_html = get_tweet_embed($tweet_id);
 						echo "<div>";
 						echo $embed_html;
 						echo "</div>";
 					}
-				?>	
-
-			</div>
+					
+				echo '<div style="text-align:center;padding-top:6px;padding-bottom:3px;"><a class="medium button" href="http://topsy.com/s?q=' . $query_string_encoded . '&type=tweet" target="_blank">More tweets</a></div>';
+				?>
+			</div>		
 		</div>
 	
 
@@ -370,11 +449,11 @@ a:hover {
 			<div class="row">
 				<div class="large-12 columns text-left" style="margin-left:8px;">
 					<?php    
-
+					if ($nothomepage) {		
 					    if (!empty($user_mention_arr)){
 						    foreach ($user_mention_arr  as $text_string => $user_freq) {
 						    if (stristr($raw_query_string, $text_string) === false) {
-							    if ("@".$text_string !== $raw_query_string AND $user_freq > 3 AND $text_string !== "YouTube" AND $text_string !== "ShareThis") {	
+							    if ("@".$text_string !== $raw_query_string AND $user_freq > 3 AND $text_string !== "Po_st" AND $text_string !== "YouTube" AND $text_string !== "ShareThis") {	
 								//$user_query = "@" . $text_string;
 								$major_mentioned_users = $major_mentioned_users . $text_string . ",";
 								//$full_url_string = "index.php?q=" . urlencode($user_query) . "&q_prev=" . $query_string_full_encoded;
@@ -385,12 +464,10 @@ a:hover {
 						    }
 					    }
 
-
-
 					    if (!empty($user_mention_arr)){
 						    foreach ($user_mention_arr  as $text_string => $user_freq) {
 						    if (stristr($raw_query_string, $text_string) === false) {
-							    if ("@".$text_string !== $raw_query_string AND $user_freq < 4 AND $user_freq > 1 AND $text_string !== "YouTube" AND $text_string !== "ShareThis") {	
+							    if ("@".$text_string !== $raw_query_string AND $user_freq < 4 AND $user_freq > 1 AND $text_string !== "Po_st" AND $text_string !== "YouTube" AND $text_string !== "ShareThis") {	
 								//$user_query = "@" . $text_string;
 								$minor_mentioned_users = $minor_mentioned_users . $text_string . ",";
 								//$full_url_string = "index.php?q=" . urlencode($user_query) . "&q_prev=" . $query_string_full_encoded;
@@ -430,7 +507,7 @@ a:hover {
 						echo "<div style='margin:3px 0px 4px 0px;line-height: 120%;'>" . $user_desc_disp . "</div>";
 						$full_screenname_string = "@" . $user_username;
 						$full_url_string = "index.php?q=" . urlencode($full_screenname_string) . "&q_prev=" . $query_string_full_encoded;
-						echo "<a href='$full_url_string' class='medium grey awesome' style='margin:3px;'>$full_screenname_string</a>";						
+						echo "<a href='$full_url_string' class='medium grey awesome' onmouseout='reset_q();' onmouseover='preview_q(this.textContent);' style='margin:3px;'>$full_screenname_string</a>";						
 						echo "</span></div>";
 						echo "<div style='clear:both'></div>";
 						//$embed_html_profile = get_tweet_embed_small($user_tweet_id);
@@ -443,6 +520,7 @@ a:hover {
 						//echo $user_verified . "<br>";
 					}
 					}
+			}
 				?>
 				</div>
 			</div>
@@ -483,7 +561,7 @@ a:hover {
 						echo "<div style='margin:3px 2px 3px 2px;line-height: 120%;'>" . $user_desc_disp . "</div>";
 						$full_screenname_string = "@" . $user_username;
 						$full_url_string = "index.php?q=" . urlencode($full_screenname_string) . "&q_prev=" . $query_string_full_encoded;
-						echo "<a href='$full_url_string' class='medium grey awesome' style='margin:3px;'>$full_screenname_string</a>";						
+						echo "<a href='$full_url_string' class='medium grey awesome' onmouseout='reset_q();' onmouseover='preview_q(this.textContent);' style='margin:3px;'>$full_screenname_string</a>";						
 						echo "</span></div>";
 						echo "<div style='clear:both'></div>";
 						//$embed_html_profile = get_tweet_embed_small($user_tweet_id);
@@ -505,28 +583,34 @@ a:hover {
 
 			</div>	
 		</div>
-
+			<div class="row">
+				<div class="large-3 columns">&nbsp;</div>
+				<div class="large-6 columns text-center">
+					<?php	
+					if ($nothomepage) {
+					?>
+						<div class="row" style="padding-bottom:10px;">
+							<div class="large-12 columns">
+							<form onSubmit="return checkEmail();" class="custom" action="alert_created.php" method="post">
+							<fieldset style="background-color:#333;width:100%;margin-left:0px;">  
+								<legend style="font-size:20px;padding: 5px 5px 5px 5px;">Sign up for email alerts</legend> 
+								  <label style="color:#FFF">Twitter conversations about</label>
+								  <input type="text" name="qt" class="input-text" value="<?php echo $query_string_full ?>" style="height:35px;margin-top:5px;font-size:15px;color:#00" />
+								  <label style="color:#FFF">Email</label>
+								  <input name="email" type="email" id="email" class="input-text" placeholder="Enter email address" value="" style="height:40px;margin-top:5px;font-size:18px;"/>
+								  <input type="submit" value="Create alert" class="medium button" style="width:100%;margin-top:2px;color:#FFF;">
+							</fieldset>
+							</form>
+							</div>
+						</div>
+					<?php
+					}
+					?>
+				</div>
+				<div class="large-3 columns">&nbsp;</div>
+			</div>	
 	<div class="row">
-	    <div class="large-12 columns text-center"  style="margin-bottom: 2px;">
-	
-		<hr>
-		    <?php
-		    if ($raw_query_string === $breaking_news_query) {
-			//echo "<h6 style='color:#666;'>Keepr curates realtime news stories</h6>";
-		    }
-		    else {
-			if ($query_string_prev){
-				echo "<a class='small awesome' href='index.php?q={$query_string_prev}'>$query_string_prev</a> &nbsp; &rarr; ";
-			    }
-			    echo "<a class='small awesome' href='index.php?q={$query_string_encoded}'>$raw_query_string</a>";
-		    }    
-		    ?>		
-	    </div>
-	</div>
-	
-	
-	<div class="row">
-		<div class="large-12 columns text-center"  style="margin-bottom: 25px;font-size:12px;font-weight:400">
+		<div class="large-12 columns text-center"  style="margin-bottom:25px;font-size:12px;font-weight:400">
 			<hr>
 			<a href="http://blog.keepr.com/" style="margin:3px;">About</a>
 			&nbsp;&nbsp;
@@ -543,7 +627,12 @@ a:hover {
 
 	
 	
-  <script>
+<script>
+perm_query = document.forms['searchForm'].q.value;
+
+</script>
+<script>
+  
   document.write('<script src=' +
   ('__proto__' in {} ? 'js/vendor/zepto' : 'js/vendor/jquery') +
   '.js><\/script>')
@@ -584,13 +673,9 @@ a:hover {
   
   -->
   
-
-  
-  <script>
+<script>
     $(document).foundation();
-  </script>
-
-
+</script>
 
 <?php
 
@@ -733,6 +818,7 @@ foreach ($top_words as $topWord => $frequency)
 return ($top_words);
 }
 
+/*
 $ch = curl_init();
 
 // set URL and other appropriate options
@@ -747,13 +833,13 @@ $out = curl_exec($ch);
 curl_close($ch);
 $time_unix = time();
 $query_string_encoded_file = $query_string_encoded;
-if ($raw_query_string === $breaking_news_query) $query_string_encoded_file = "breakingnews";
+if (!$nothomepage) $query_string_encoded_file = "breakingnews";
 $filename_json = $time_unix . "_" . $query_string_encoded_file . "". ".json";
 $url_dest = "keepr_dataset_3/" . $filename_json;
 $fp = fopen($url_dest, 'w');
 fwrite($fp, $out);
 fclose($fp);
-
+*/
 ?>
   
 </body>

@@ -1,0 +1,39 @@
+		.twtr-widget {
+			float: left;
+			width: 330px;
+			margin: 0px 0 0 0px;
+			padding: 0 0 15px;
+			background: #fafafa url(wavecut.png);
+			
+			/*** cross browser box shadow ***/
+			-moz-box-shadow: 0 0 2px #fff;
+			-webkit-box-shadow: 0 0 2px #fff;
+			-ms-filter: "progid:DXImageTransform.Microsoft.Glow(color=#ffffff,strength=3)";
+			filter:
+				progid:DXImageTransform.Microsoft.Shadow(color=#ffffff,direction=0,strength=3)
+				progid:DXImageTransform.Microsoft.Shadow(color=#ffffff,direction=90,strength=3)
+				progid:DXImageTransform.Microsoft.Shadow(color=#ffffff,direction=180,strength=3)
+				progid:DXImageTransform.Microsoft.Shadow(color=#ffffff,direction=270,strength=3);
+			box-shadow: 0 0 2px #fff;
+			
+			/*** kind of cross browser rounded corner ***/
+			-webkit-border-radius: 3px;
+			-khtml-border-radius: 3px;
+			-moz-border-radius: 3px;
+			border-radius: 3px;
+		}
+			.twtr-hd {
+				/*** cross browser rgba ***/
+				background-color: transparent;
+				background-color: rgba(255,255,255,0.3);
+				filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#30ffffff,endColorstr=#30ffffff);
+				-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#30ffffff,endColorstr=#30ffffff)";
+			}
+			.twtr-bd {}
+				.twtr-widget .twtr-bd .twtr-tweet {
+					margin: 5px 0 0;
+					padding: 0 0 5px;
+					border-bottom: 1px solid #cecece;
+				}
+
+			.twtr-ft { display: none; }

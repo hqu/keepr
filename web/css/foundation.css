@@ -3409,6 +3409,7 @@ table {
     max-width: 800px; }
 
 
+
 .awesome, .awesome:visited {
 	background: #222 url(alert-overlay.png) repeat-x; 
 	display: inline-block; 
@@ -3429,6 +3430,7 @@ table {
 	.awesome:hover							{ background-color: #111; color: #fff; }
 	.awesome:active							{ top: 1px; color: #eee;}
 	.small.awesome, .small.awesome:visited 			{ font-size: 13px; padding:5px 8px 5px;}
+        .xsmall.awesome, .xsmall.awesome:visited 		{ font-size: 11px; padding:4px 6px 4px;}        
 	.awesome, .awesome:visited,
 	.medium.awesome, .medium.awesome:visited 		{ font-size: 15px; font-weight: 500; line-height: 1.1; text-shadow: 0 -1px 1px rgba(0,0,0,0.25); }
 	.large.awesome, .large.awesome:visited 			{ font-size: 22px; font-weight: 700;padding: 6px 10px 6px; }
