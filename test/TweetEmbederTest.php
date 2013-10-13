@@ -1,7 +1,7 @@
 <?
 require_once "web/lib/TweetEmbeder.php";
 
-class StackTest extends PHPUnit_Framework_TestCase
+class TweetEmbederTest extends PHPUnit_Framework_TestCase
 {
     public function testGetTweetEmbed() {
     	$tweetEmbeder = new TweetEmbeder;
