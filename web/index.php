@@ -39,9 +39,9 @@ if ($raw_query_string !== $breaking_news_query) {
 }
 
 if ($query_string_prev){
-$query_string_prev_encoded = urlencode($raw_query_string_prev);
-$query_string_full =  $query_string_prev . " " . $query_string;
-$query_string_full_encoded = $query_string_prev_encoded . "%20" . $query_string_encoded;
+	$query_string_prev_encoded = urlencode($raw_query_string_prev);
+	$query_string_full =  $query_string_prev . " " . $query_string;
+	$query_string_full_encoded = $query_string_prev_encoded . "%20" . $query_string_encoded;
 }
 else {
 	$query_string_full = $query_string;
@@ -50,7 +50,7 @@ else {
 
 //Create session variable to track search terms
 if (empty($_SESSION['search_term'])){
-$_SESSION['search_term'] = array();
+	$_SESSION['search_term'] = array();
 }
 
 //Add to session variable to search terms
@@ -129,22 +129,21 @@ $related_images = array();
 $names_arr = array();
 $user_mention_arr = array();
 
+// Get related images
 foreach($json_output_3['statuses'] as $key9 => $result9) {
     $links_images = $result9["entities"]["media"];
 
-    if (!empty($links_images)){   
-	foreach($links_images as $key6 => $result6) {
-		$url_str = $result6["media_url"];
-		//$url_tweet = $result6[expanded_url];		
-		//if (in_array($url_str, $related_images)) {
-			$related_images[] = $url_str;
-			//$related_images[tweet_link] = $url_tweet;
-		//}
-	}
+    if (!empty($links_images)){
+		foreach($links_images as $key6 => $result6) {
+			$url_str = $result6["media_url"];
+			//$url_tweet = $result6[expanded_url];		
+			//if (in_array($url_str, $related_images)) {
+				$related_images[] = $url_str;
+				//$related_images[tweet_link] = $url_tweet;
+			//}
+		}
 	}
 }
-
-
 
 foreach($json_output_2['statuses'] as $key => $result) {
     $tweet_id = $result["id"];
@@ -193,13 +192,13 @@ foreach($json_output['statuses'] as $key2 => $result2) {
     }    
     $pop_links_node = $result2["entities"]["urls"];  
     if (!empty($pop_links_node)){   
-	foreach($pop_links_node  as $key5 => $result5) {
-	    $url_str = $result5["expanded_url"];
-	    //$full_string_links = $full_string_links . " " . $url_str;
-	    if (strpos($url_str, $raw_query_string) === false) {
-		$related_links[] = $url_str;
-	    }
-	}
+		foreach($pop_links_node  as $key5 => $result5) {
+		    $url_str = $result5["expanded_url"];
+		    //$full_string_links = $full_string_links . " " . $url_str;
+		    if (strpos($url_str, $raw_query_string) === false) {
+			$related_links[] = $url_str;
+		    }
+		}
     }
 }
 
