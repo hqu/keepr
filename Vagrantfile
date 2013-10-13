@@ -84,19 +84,28 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #
   config.vm.provision :chef_solo do |chef|
     chef.cookbooks_path = ["./infra/cookbooks", "./infra/site-cookbooks"]
+    chef.add_recipe "apt"
+    chef.add_recipe "yum"
     chef.add_recipe "iptables"
     chef.add_recipe "php"
     chef.add_recipe "vim"
     chef.add_recipe "apache2"
     chef.add_recipe "keepr"
+    chef.add_recipe "composer"
+    chef.add_recipe "phpunit"
+    chef.add_recipe "mongodb::10gen_repo"
+    chef.add_recipe "mongodb"
   #  chef.run_list = ["recipe[infra::default]"]
   #   chef.roles_path = "../my-recipes/roles"
   #   chef.data_bags_path = "../my-recipes/data_bags"
   #   chef.add_role "web"
   #
   #   # You may also specify custom JSON attributes:
-  #   chef.json = { :mysql_password => "foo" }
-    chef.json = { :apache => { :default_site_enabled => true } }
+    chef.json = { 
+      :apache => { :default_site_enabled => true } ,
+      :phpunit => {:version => "3.7.27"}
+
+    }
   end
 
   # Enable provisioning with chef server, specifying the chef server URL,
