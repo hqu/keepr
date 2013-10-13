@@ -73,8 +73,8 @@ foreach($twitter_handles_arr as $result) {
 
 require_once ('codebird.php');
 require_once ('keys.php');
-//Twitter OAuth Settings, enter your settings here:
-
+require_once ('lib/TweetEmbeder.php');
+$tweetEmbeder = new TweetEmbeder;
 
 //Get authenticated
 Codebird::setConsumerKey($CONSUMER_KEY, $CONSUMER_SECRET);
@@ -113,7 +113,6 @@ $params_3 = array(
 $data_3 = $cb->search_tweets($params_3, true);
 $data_json_3 = json_encode($data_3);
 $json_output_3 = json_decode($data_json_3, true);
-
 
 //Output result in JSON, getting it ready for jQuery to process
 //echo json_encode($data);
@@ -412,11 +411,12 @@ a:hover {
 			<div class="row">
 		
 				<?php
+
 			if ($nothomepage) {				
 				if (!empty($json_output['statuses'])) {
 					foreach(array_slice($json_output['statuses'], 0, 5) as $key => $result)  {
 						$tweet_id = $result[id];
-						$embed_html = get_tweet_embed($tweet_id);
+						$embed_html = $tweetEmbeder->get_tweet_embed($tweet_id);
 						echo "<div style='margin-left:6px;'>";
 						echo $embed_html;
 						echo "</div>";	    
@@ -428,7 +428,7 @@ a:hover {
 				<?php
 					foreach(array_slice($json_output_2['statuses'], 0, 12) as $key => $result)  {
 						$tweet_id = $result[id];
-						$embed_html = get_tweet_embed($tweet_id);
+						$embed_html = $tweetEmbeder->get_tweet_embed($tweet_id);
 						echo "<div>";
 						echo $embed_html;
 						echo "</div>";
@@ -676,29 +676,6 @@ perm_query = document.forms['searchForm'].q.value;
 
 <?php
 
-function get_tweet_embed($tw_id) {
-    //echo $tw_id."URL: https://api.twitter.com/1/statuses/oembed.json?id={$tw_id}&align=center&omit_script=true<br>";
-    $JSON = file_get_contents("https://api.twitter.com/1/statuses/oembed.json?id={$tw_id}&align=left&omit_script=true&hide_media=false");
-    $JSON_Data = json_decode($JSON,true);
-    $tw_embed_code = $JSON_Data[html];
-    return $tw_embed_code;
-}
-
-function get_tweet_embed_small($tw_id) {
-    //echo $tw_id."URL: https://api.twitter.com/1/statuses/oembed.json?id={$tw_id}&align=center&omit_script=true<br>";
-    $JSON = file_get_contents("https://api.twitter.com/1/statuses/oembed.json?id={$tw_id}&align=left&omit_script=true&hide_media=false&hide_thread=false");
-    $JSON_Data = json_decode($JSON,true);
-    $tw_embed_code = $JSON_Data[html];
-    return $tw_embed_code;
-}
-
-function get_tweet_embed_embedly($tw_id) {
-    //echo "<br>http://api.embed.ly/1/oembed?url=http%3A%2F%2Ftwitter.com%2Fembedly%2Fstatus%2F{$tw_id}&omit_script=true&maxwidth=300<br>";
-    $JSON = file_get_contents("https://api.embed.ly/1/oembed?key=0c08c75737b3425db32d30a364884d07&url=http%3A%2F%2Ftwitter.com%2Fembedly%2Fstatus%2F{$tw_id}&omit_script=true&maxwidth=300");
-    $JSON_Data = json_decode($JSON,true);
-    $tw_embed_code = $JSON_Data[html];
-    return $tw_embed_code;
-}
 
 function get_name_entities($tweet_string, $names_array) {
     $stopword_name = array("BBC ","Another ", "BREAKING ", "The ", "THE ", "Former ","An ", "New Post","TOP STORIES","BBC " ,"Which ","Hey ", "This ","That ","These ", "Would ","You ", "RT ", " RT", "RSS ", "CNN", "Breaking News", "BREAKING NEWS","My ", "Did ", "About ", "We ", "Not ","Into ","Is ", "Only ", "If ", "So ", "THIS ", "His ","It ", "Of ", "Will ","Please ","Can ","In ", "On ", "And ", "Why","MUST", "From", "Some ", "After ", "With ", "Latest ", "Jokes" , "FUCK", " The", "LUNCH ", "Watching", " Can ", "For ","Was ","Get ","Very ", "What ","Does ","Here ", "Have ","DTN " , "How ", "Are ", " I ","Can ", "As ", "All ", "Although ");
