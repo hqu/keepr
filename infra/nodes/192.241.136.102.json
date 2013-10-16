@@ -1,9 +1,0 @@
-{	
-	"run_list" : [
-		"recipe[iptables]",
-		"recipe[php]",
-		"recipe[vim]",
-		"recipe[apache2]",
-		"recipe[keepr]"
-	]
-}

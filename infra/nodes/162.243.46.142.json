@@ -1,0 +1,14 @@
+{	
+	"run_list" : [
+		"recipe[yum]",
+		"recipe[iptables]",
+		"recipe[php]",
+		"recipe[vim]",
+		"recipe[apache2]",
+		"recipe[keepr]",
+		"recipe[composer]",
+		"recipe[phpunit]",
+		"recipe[mongodb::10gen_repo]",
+		"recipe[mongodb]"
+	]
+}

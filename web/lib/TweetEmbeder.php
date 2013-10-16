@@ -7,14 +7,11 @@ class TweetEmbeder {
 		return $this->get_html($JSON);
 	}
 
-
 	public function get_tweet_embed_small($tw_id) {
 		//echo $tw_id."URL: https://api.twitter.com/1/statuses/oembed.json?id={$tw_id}&align=center&omit_script=true<br>";
 		$JSON = file_get_contents("https://api.twitter.com/1/statuses/oembed.json?id={$tw_id}&align=left&omit_script=true&hide_media=false&hide_thread=false");
 		return $this->get_html($JSON);
 	}
-
-
 
 	public function get_tweet_embed_embedly($tw_id) {
 	    //echo "<br>http://api.embed.ly/1/oembed?url=http%3A%2F%2Ftwitter.com%2Fembedly%2Fstatus%2F{$tw_id}&omit_script=true&maxwidth=300<br>";

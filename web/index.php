@@ -118,6 +118,15 @@ $json_output_3 = json_decode($data_json_3, true);
 
 //Output result in JSON, getting it ready for jQuery to process
 //echo json_encode($data);
+$ses_id = session_id();
+$m = new MongoClient();
+$db = $m->keepr;
+$keepr_col = $db->keepr_col;
+$saved_tweets = array( "tweet_id" => "1", "saved_id" => $ses_id, 
+	"popular" => $data, 
+	"recent" => $data_2, 
+	"images" => $data_3);
+$keepr_col->insert($saved_tweets);
 
 $full_string = " ";
 $full_string_user = " ";
