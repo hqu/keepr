@@ -1,7 +1,8 @@
 <?php
 
 require_once ('codebird.php');
-\Codebird\Codebird::setConsumerKey('DxX3ycbPONbR5U81Y7Zefw', 'Bizoo1ieeJyja1EAXVOgcz7xjzTNQjyxqBs1VQGnKs'); // static, see 'Using multiple Codebird instances'
+require_once ('../keys.php');
+\Codebird\Codebird::setConsumerKey($CONSUMER_KEY, $CONSUMER_SECRET); // static, see 'Using multiple Codebird instances'
 
 $cb = \Codebird\Codebird::getInstance();
 session_start();
