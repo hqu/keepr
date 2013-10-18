@@ -41,7 +41,9 @@ if (! isset($_SESSION['oauth_token'])) {
 	$cb->setToken($_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);    
 	$user_account = (array) $cb->account_settings();
 	$user_screenname = $user_account[screen_name];
-	
+
+    $_SESSION['user_screenname'] = $user_screenname;
+
     // send to same URL, without oauth GET parameters
     if (strpos($prev_page,'q=') !== false){
     	header('Location: http://keepr.com' . $prev_page);
