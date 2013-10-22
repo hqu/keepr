@@ -36,6 +36,17 @@ class TwitterRepo {
 
         return $ids;
     }
+
+    public function get_saved_tweets_by_id($user_screen_name, $id) {
+        $saved_tweets = $this->twitter_collection->findOne(array("twitter_name" => $user_screen_name,"saved_tweets" => array('$elemMatch' => array('saved_id' => $id))));
+        foreach($saved_tweets["saved_tweets"] as $saved_tweet) {
+            if($saved_tweet["saved_id"] === $id) {
+                return $saved_tweet;
+            }
+        }
+
+        return null;
+    }
 }
 
 ?>

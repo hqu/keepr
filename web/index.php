@@ -8,6 +8,7 @@ if ($logout_action === "1") {
 	session_destroy();
 }
 
+
 ?>
 <!DOCTYPE html>
 <!--[if IE 8]> 				 <html class="no-js lt-ie9" lang="en"> <![endif]-->
@@ -84,8 +85,14 @@ require_once ('keys.php');
 require_once ('lib/TweetEmbeder.php');
 require_once ('lib/FacebookUtils.php');
 require_once ('lib/StringUtils.php');
+require_once('lib/TwitterRepo.php');
 
 $tweetEmbeder = new TweetEmbeder();
+$m = new MongoClient();
+$db = $m->keepr;
+$keepr_col = $db->keepr_col;
+
+$twitter_repo = new TwitterRepo($keepr_col);
 
 //Get authenticated
 Codebird::setConsumerKey($CONSUMER_KEY, $CONSUMER_SECRET);
@@ -98,6 +105,10 @@ else {
 	$cb->setToken($_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);
 }
 
+$tweets = array();
+if(isset($_GET['saved_t_id'])) {
+    $tweets = $twitter_repo->get_saved_tweets_by_id($_SESSION['user_screenname'], $_GET['saved_t_id']);
+}
 
 if ($nothomepage) {
 	$params = array(
@@ -106,7 +117,15 @@ if ($nothomepage) {
 		'lang' => 'en',
 		'count' => '6'
 	);
-	$data = $cb->search_tweets($params, true);
+
+    $data = array();
+    if($tweets) {
+        $data = $tweets["popular"];
+    } else {
+        $data = $cb->search_tweets($params, true);
+    }
+
+    $_SESSION["popular_tweets"] = $data;
 	$data_json = json_encode($data);
 	$json_output = json_decode($data_json, true);
 
@@ -115,7 +134,15 @@ if ($nothomepage) {
 	'lang' => 'en',
 	'count' => '20'
 	);
-	$data_3 = $cb->search_tweets($params_3, true);
+
+    $data_3 = array();
+    if($tweets) {
+        $data_3 = $tweets["images"];
+    } else {
+        $data_3 = $cb->search_tweets($params_3, true);
+    }
+
+    $_SESSION["images_tweets"] = $data_3;
 	$data_json_3 = json_encode($data_3);
 	$json_output_3 = json_decode($data_json_3, true);
 }
@@ -126,23 +153,21 @@ $params_2 = array(
 	'lang' => 'en',	
 	'count' => '100'
 );
-$data_2 = $cb->search_tweets($params_2, true);
+
+$data_2 = array();
+if($tweets) {
+    $data_2 = $tweets["recent"];
+} else {
+    $data_2 = $cb->search_tweets($params_2, true);
+}
+
+$_SESSION["recent_tweets"] = $data_2;
 $data_json_2 = json_encode($data_2);
 $json_output_2 = json_decode($data_json_2, true);
 
 
 //Output result in JSON, getting it ready for jQuery to process
 //echo json_encode($data);
-$ses_id = session_id();
-$m = new MongoClient();
-$db = $m->keepr;
-$keepr_col = $db->keepr_col;
-
-$saved_tweets = array( "tweet_id" => "1", "saved_id" => $ses_id, 
-	"popular" => $data, 
-	"recent" => $data_2, 
-	"images" => $data_3);
-$keepr_col->insert($saved_tweets);
 
 $full_string = " ";
 $full_string_user = " ";
@@ -159,7 +184,7 @@ if (!empty($json_output_3['statuses'])){
 foreach($json_output_3['statuses'] as $key9 => $result9) {
     $links_images = $result9[entities][media];
     $tw_text = $result9[text];
-    $tw_id = $result9[id];
+    $tw_id = $result9[id_str];
     if (!empty($links_images)){
 	foreach($links_images as $key6 => $result6) {
 		$url_str = $result6[media_url];
@@ -181,7 +206,7 @@ foreach($json_output_3['statuses'] as $key9 => $result9) {
 
 if (!empty($json_output_2['statuses'])){
 foreach($json_output_2['statuses'] as $key => $result) {
-    $tweet_id = $result[id];
+    $tweet_id = $result[id_str];
     //$num_retweets = $result[metadata][recent_retweets];
     $tw_screenname = $result[from_user];
     $tw_screenname_display = $result[from_user_name];
@@ -309,6 +334,17 @@ a:hover {
 				else {
 				?>
 					<div class="row">
+                        <form method="POST" action="lib/save_tweet.php">
+                            <input type="submit" />
+                        </form>
+                        <?php
+
+                            foreach($twitter_repo->get_saved_tweet_ids($_SESSION['user_screenname']) as $saved_tweet_id)
+                            {
+                                echo '<a href="index.php?saved_t_id='.$saved_tweet_id.'"><span>'.$saved_tweet_id.'</span></a><br/>';
+                            }
+                        ?>
+
 						<div class="large-12 columns text-right" style="padding-top:5px;">
 								<a href="index.php?logout=1">Log out</a>
 						</div>
@@ -499,7 +535,7 @@ a:hover {
 			if ($nothomepage) {				
 				if (!empty($json_output['statuses'])) {
 					foreach(array_slice($json_output['statuses'], 0, 5) as $key => $result)  {
-						$tweet_id = $result[id];
+						$tweet_id = $result[id_str];
 						$embed_html = $tweetEmbeder->get_tweet_embed($tweet_id);
 						echo "<div style='margin-left:6px;'>";
 						echo $embed_html;
@@ -512,7 +548,7 @@ a:hover {
 				<?php
 				if (!empty($json_output_2['statuses'])){
 					foreach(array_slice($json_output_2['statuses'], 0, 12) as $key => $result)  {
-						$tweet_id = $result["id"];
+						$tweet_id = $result["id_str"];
 						$embed_html = $tweetEmbeder->get_tweet_embed($tweet_id);
 						echo "<div>";
 						echo $embed_html;

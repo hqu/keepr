@@ -64,6 +64,21 @@ class TwitterRepoTest extends PHPUnit_Framework_TestCase {
 
     }
 
+    public function testGetSavedTweetById() {
+        $twitterRepo = new TwitterRepo($this->keepr_col);
+        $twitterRepo->save("user_screenname", "0", "0", "0");
+        $twitterRepo->save("user_screenname", "1", "2", "3");
+
+        $ids = $twitterRepo->get_saved_tweet_ids("user_screenname");
+
+        $tweets = $twitterRepo->get_saved_tweets_by_id("user_screenname", $ids[0]);
+
+        $this->assertEquals("0", $tweets["popular"]);
+        $this->assertEquals("0", $tweets["recent"]);
+        $this->assertEquals("0", $tweets["images"]);
+
+    }
+
 }
 
 ?>

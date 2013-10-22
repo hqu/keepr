@@ -49,7 +49,8 @@ if (! isset($_SESSION['oauth_token'])) {
     	header('Location: http://keepr.com' . $prev_page);
     }
     else {
-    	header('Location: http://www.keepr.com/index.php?q=@' . $user_screenname);      
+
+    	header('Location: http://' .$_SERVER["HTTP_HOST"]. '/index.php?q=@' . $user_screenname);
     }
     die();
 }
