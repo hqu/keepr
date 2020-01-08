@@ -1,11 +1,11 @@
 <?
-
+ini_set('display_errors','off');
 class StringUtils {
 	public static function get_freq($txt_string) {
 		/* split $content into array of substrings of $content i.e wordwise */
 		$txt_string_lower = strtolower($txt_string);
 		$wordArray = preg_split('/[^a-zA-Z]/', $txt_string_lower, -1, PREG_SPLIT_NO_EMPTY);
-
+		print_r($wordArray);
 		 
 		/* "stop words", filter them  */
 		$filteredArray = array_filter($wordArray, function($x){
@@ -60,9 +60,10 @@ class StringUtils {
 	    $stopword_name = array("BBC ","Another ", "BREAKING ", "The ", "THE ", "Former ","An ", "New Post","TOP STORIES","BBC " ,"Which ","Hey ", "This ","That ","These ", "Would ","You ", "RT ", " RT", "RSS ", "CNN", "Breaking News", "BREAKING NEWS","My ", "Did ", "About ", "We ", "Not ","Into ","Is ", "Only ", "If ", "So ", "THIS ", "His ","It ", "Of ", "Will ","Please ","Can ","In ", "On ", "And ", "Why","MUST", "From", "Some ", "After ", "With ", "Latest ", "Jokes" , "FUCK", " The", "LUNCH ", "Watching", " Can ", "For ","Was ","Get ","Very ", "What ","Does ","Here ", "Have ","DTN " , "How ", "Are ", " I ","Can ", "As ", "All ", "Although ");
 	    $rexSafety = "/^([A-Z][\w-]*(\s+[A-Z][\w-]*)+)/";
 	    $strings2 = preg_split($rexSafety, $tweet_string, 0, PREG_SPLIT_OFFSET_CAPTURE);
+
 	    if (count($strings2) > 0) {
-		    $len_str_1 = strlen($strings2[0][0]);
-		    $len_name_1 = $strings2[1][1] - $len_str_1;
+		$len_str_1 = strlen($strings2[0][0]);
+		$len_name_1 = $strings2[1][1] - $len_str_1;
 		    $name_string_1 = substr($tweet_string, $len_str_1, $len_name_1);
 		    $name_string_final  = str_replace($stopword_name, "", $name_string_1);
 

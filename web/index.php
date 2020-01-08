@@ -119,7 +119,7 @@ if ($nothomepage) {
 	);
 
     $data = array();
-    if($tweets) {
+    if(isset($_GET['saved_t_id'])) {
         $data = $tweets["popular"];
     } else {
         $data = $cb->search_tweets($params, true);
@@ -136,7 +136,7 @@ if ($nothomepage) {
 	);
 
     $data_3 = array();
-    if($tweets) {
+    if(isset($_GET['saved_t_id'])) {
         $data_3 = $tweets["images"];
     } else {
         $data_3 = $cb->search_tweets($params_3, true);
@@ -155,7 +155,7 @@ $params_2 = array(
 );
 
 $data_2 = array();
-if($tweets) {
+if(isset($_GET['saved_t_id'])) {
     $data_2 = $tweets["recent"];
 } else {
     $data_2 = $cb->search_tweets($params_2, true);
